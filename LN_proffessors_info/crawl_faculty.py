@@ -8,7 +8,6 @@
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
-import re
 import time
 from urllib.parse import urljoin
 
@@ -87,9 +86,10 @@ def parse_faculty_item(html_block):
 
 
 def parse_faculty_page(html):
-    """解析 Faculty 主页，提取所有教授信息"""
+    """解析 Faculty 主页，提取所有教授信息（去重）"""
     soup = BeautifulSoup(html, "html.parser")
     professors = []
+    seen_names = set()
 
     # 查找所有教授信息块
     # 根据示例HTML结构: div.infors
@@ -98,7 +98,17 @@ def parse_faculty_page(html):
     for block in info_blocks:
         prof_data = parse_faculty_item(str(block))
         if prof_data and prof_data["姓名"]:
-            professors.append(prof_data)
+            # 去重：同一姓名只保留一条
+            name = prof_data["姓名"]
+            if name not in seen_names:
+                seen_names.add(name)
+                professors.append(prof_data)
+            # 如果该条目有更多信息（如所属教研室），则更新已有记录
+            elif prof_data.get("所属教研室"):
+                for existing in professors:
+                    if existing["姓名"] == name and not existing.get("所属教研室"):
+                        existing.update(prof_data)
+                        break
 
     return professors
 
