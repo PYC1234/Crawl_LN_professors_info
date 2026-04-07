@@ -1,0 +1,9 @@
+# Claude Code 配置
+.claude/
+
+# Python
+__pycache__/
+
+# 数据文件（可根据需要取消注释）
+# *.csv
+# *.xlsx
